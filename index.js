@@ -45,14 +45,18 @@ app.get('/tileserver', (req, res) => {
     const z = parseInt(req.query.z);
     const x = parseInt(req.query.x);
     const y = parseInt(req.query.y.replace('.pbf', ''));
-    console.log(x,y,z)
+    console.log(req.query, " mapping library is sending this info everytime map moves to different tile")
+    console.log(x,y,z, "Tile Coordinates to look up in index")
     const tile = tileIndex.getTile(z, x, y);
     // console.log(tile)
     if (!tile) {
         return res.status(204).end();
     }
+    console.log(tile, "Specific Tile to send to mapping library, needs to be converted to pbf")
+
     // encode the data as protobuf
     const buffer = Buffer.from(vtpbf.fromGeojsonVt({ geojsonLayer: tile }));
+    console.log(typeof(buffer), "This is the final buffer data sent back to mapping library to be rendered.")
     res.send(buffer);
 });
 
