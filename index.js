@@ -54,11 +54,28 @@ the data from the bucket*/
 
   s3.getObject(getParams, (error, data) => {
     if (error) {
-      console.log(error, error.stack);
+    //   console.log(error, error.stack);
+    console.log("Doesn't exist")
       return res.status(204).end();
     } else {
-      console.log(res.data);
-      // res.send(data.body);
+      console.log(data.Body);
+      res.header("Content-Encoding","gzip")
+      res.send(data.Body);
     }
   });
 });
+
+// const getParams = {
+//     Bucket: bucketName,
+//     Prefix: `LSOA_Tiles`,
+//   };
+
+//   s3.listObjectsV2(getParams, (error, data) => {
+//     if (error) {
+//       console.log(error, error.stack);
+//     //   return res.status(204).end();
+//     } else {
+//       console.log(data.body);
+//       // res.send(data.body);
+//     }
+//   });
