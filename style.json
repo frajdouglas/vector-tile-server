@@ -1,0 +1,24 @@
+{
+    "version": 8,
+    "name": "Basic",
+    "metadata": {
+      "openmaptiles:version": "3.x"
+    },
+    "sources": {
+      "LSOA_Tiles": {
+        "type": "vector",
+        "tiles": ["http://localhost:5000/tileserver/coords/{z}/{x}/{y}.pbf"
+        ]
+      }
+    },
+    "layers": [
+      {
+        "id": "LSOA_Tiles",
+        "type": "line",
+        "paint": {
+          "line-color": "hsl(47, 26%, 88%)"
+        }
+      }
+    ]
+  }
+  

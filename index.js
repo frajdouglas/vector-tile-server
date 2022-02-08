@@ -1,3 +1,5 @@
+const style = require("./style.json");
+
 //HTTP handling
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -38,33 +40,6 @@ app.listen(PORT, () => {
   console.log("App is listening on port 5000");
 });
 
-// route for the Vector Tiles request
-app.get("/tileserver", (req, res) => {
-  const z = parseInt(req.query.z);
-  const x = parseInt(req.query.x);
-  const y = parseInt(req.query.y.replace(".pbf", ""));
-  console.log(x, y, z, "Tile Coordinates to look up in index");
-  /*open the connection to S3 and get 
-the data from the bucket*/
-
-  const getParams = {
-    Bucket: bucketName,
-    Key: `LSOA_Tiles/${z}/${x}/${y}.pbf`,
-  };
-
-  s3.getObject(getParams, (error, data) => {
-    if (error) {
-    //   console.log(error, error.stack);
-    console.log("Doesn't exist")
-      return res.status(204).end();
-    } else {
-      console.log(data.Body);
-      res.header("Content-Encoding","gzip")
-      res.send(data.Body);
-    }
-  });
-});
-
 // const getParams = {
 //     Bucket: bucketName,
 //     Prefix: `LSOA_Tiles`,
@@ -75,7 +50,102 @@ the data from the bucket*/
 //       console.log(error, error.stack);
 //     //   return res.status(204).end();
 //     } else {
-//       console.log(data.body);
-//       // res.send(data.body);
+//         let prefixLength = getParams.Prefix.length
+//         console.log(prefixLength)
+//         let dataArray = data.Contents.map((item) => {
+//             let fileName = item.Key
+//             fileName = fileName.substring(prefixLength + 1)
+//             return fileName
+//         })
+//         console.log(dataArray)
+//   console.log(data.Contents);
+
 //     }
 //   });
+
+// route for the Vector Tiles request
+// app.get("/tileserver", (req, res) => {
+//   const z = parseInt(req.query.z);
+//   const x = parseInt(req.query.x);
+//   const y = parseInt(req.query.y.replace(".pbf", ""));
+//   console.log(x, y, z, "Tile Coordinates to look up in index");
+//   /*open the connection to S3 and get
+// the data from the bucket*/
+
+//   const getParams = {
+//     Bucket: bucketName,
+//     Key: `LSOA_Tiles/${z}/${x}/${y}.pbf`,
+//   };
+
+//   s3.getObject(getParams, (error, data) => {
+//     if (error) {
+//       //   console.log(error, error.stack);
+//       console.log("Doesn't exist");
+//       return res.status(204).end();
+//     } else {
+//       console.log(data.Body);
+//       res.header("Content-Encoding", "gzip");
+//       res.send(data.Body);
+//     }
+//   });
+// });
+
+// app.get("/tileserver/style.json", (req, res) => {
+//   res.send(style);
+// });
+
+app.get("/tileserver/style.json", (req, res) => {
+    console.log(req)
+  res.send({
+    "version": 8,
+    "name": "Basic",
+    "metadata": {
+      "openmaptiles:version": "3.x"
+    },
+    "sources": {
+      "LSOA_Tiles": {
+        "type": "vector",
+        "tiles": ["http://localhost:5000/tileserver/coords/{z}/{x}/{y}.pbf"
+        ]
+      }
+    },
+    "layers": [
+      {
+        "id": "LSOA_Tiles",
+        "type": "line",
+        "paint": {
+          "line-color": "hsl(47, 26%, 88%)"
+        }
+      }
+    ]
+  })
+})
+
+app.get("/tileserver/coords/:z/:x/:y", (req, res) => {
+  const z = parseInt(req.params.z);
+  const x = parseInt(req.params.x);
+  const y = parseInt(req.params.y.replace(".pbf", ""));
+  // console.log(req.params)
+  console.log(x, y, z, "Tile Coordinates to look up in index");
+  /*open the connection to S3 and get 
+  the data from the bucket*/
+
+  const getParams = {
+    Bucket: bucketName,
+    // Key: `LSOA_Tiles/${z}/${x}/${y}.pbf`,
+        Key: `countries/${z}/${x}/${y}.pbf`,
+
+  };
+
+  s3.getObject(getParams, (error, data) => {
+    if (error) {
+      //   console.log(error, error.stack);
+      console.log("Doesn't exist");
+      return res.status(204).end();
+    } else {
+      console.log(data.Body);
+      res.header("Content-Encoding", "gzip");
+      res.send(data.Body);
+    }
+  })
+})
