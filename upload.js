@@ -4,7 +4,7 @@ import { s3Client } from "./libs/s3Client.js"; // Helper function that creates A
 import {path} from "path";
 import {fs} from "fs";
 
-const file = "C:/Users/FraserDouglas/Downloads/countries"; // Path to and name of object. For example '../myFiles/index.js'.
+const file = "C:/Users/FraserDouglas/Documents/TEMP TILING TESTING/tippecanoe2/tippecanoe2/tiledata"; // Path to and name of object. For example '../myFiles/index.js'.
 const fileStream = fs.createReadStream(file);
 
 // Set the parameters
@@ -14,7 +14,6 @@ export const uploadParams = {
   Key: path.basename(file),
   // Add the required 'Body' parameter
   Body: fileStream,
-  ContentEncoding: 'gzip'
 };
 
 

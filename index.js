@@ -121,7 +121,7 @@ app.get("/tileserver/style.json", (req, res) => {
   })
 })
 
-app.get("/tileserver/coords/:z/:x/:y", (req, res) => {
+app.get("/tileserver/:z/:x/:y", (req, res) => {
   const z = parseInt(req.params.z);
   const x = parseInt(req.params.x);
   const y = parseInt(req.params.y.replace(".pbf", ""));
