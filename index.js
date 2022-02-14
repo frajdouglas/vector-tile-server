@@ -10,7 +10,6 @@ const AWS = require("aws-sdk");
 //MapBox Vector Tiles handling
 const geojsonvt = require("geojson-vt");
 const vtpbf = require("vt-pbf");
-
 // set the AWS region
 const REGION = "eu-west-2"; // e.g., "us-east-1"
 // set the bucket parameters
@@ -95,31 +94,48 @@ app.listen(PORT, () => {
 // });
 
 app.get("/tileserver/style.json", (req, res) => {
-    console.log(req)
-  res.send({
-    "version": 8,
-    "name": "Basic",
-    "metadata": {
-      "openmaptiles:version": "3.x"
-    },
-    "sources": {
-      "LSOA_Tiles": {
-        "type": "vector",
-        "tiles": ["http://localhost:5000/tileserver/coords/{z}/{x}/{y}.pbf"
-        ]
-      }
-    },
-    "layers": [
-      {
-        "id": "LSOA_Tiles",
-        "type": "line",
-        "paint": {
-          "line-color": "hsl(47, 26%, 88%)"
-        }
-      }
-    ]
-  })
+    console.log("Style has been requested by map")
+    res.send(style)
 })
+//   res.send({
+//     "version": 8,
+//     "name": "Basic",
+//     "metadata": {
+//       "openmaptiles:version": "3.x"
+//     },
+//     "sources": {
+//       "basemap": {
+//         "type": "vector",
+//         "tiles": ["https://api.maptiler.com/maps/basic/style.json?key=BtMVarta3GOyDiFUWHQT"]
+//       },
+//       "countries": {
+//         "type": "vector",
+//         "tiles": ["http://localhost:5000/tileserver/{z}/{x}/{y}.pbf"
+//         ]
+//       }
+//     },
+//     "layers": [
+//       {
+//         "id": "basemap",
+//         "source": "basemap",
+//         "source-layer": "basemap",
+//         "type": "line",
+//         // "paint": {
+//         //   "line-color": "hsl(47, 26%, 88%)"
+//         // }
+//       },
+//       {
+//         "id": "countries",
+//         "source": "countries",
+//         "source-layer": "countries",
+//         "type": "line",
+//         "paint": {
+//           "line-color": "hsl(47, 26%, 88%)"
+//         }
+//       }
+//     ]
+//   })
+// })
 
 app.get("/tileserver/:z/:x/:y", (req, res) => {
   const z = parseInt(req.params.z);
