@@ -819,9 +819,12 @@
       "source": "countries",
       "source-layer": "countries",
       "type": "line",
+      "layout": {
+        "visibility" : "visible"
+      },
       "paint": {
-        "line-color": "hsl(47, 26%, 88%)"
-      }
+        "line-color": "rgba(255,255,255,0.75)"
+      }      
     }
   ],
   "id": "basic"
