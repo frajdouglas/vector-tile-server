@@ -41,17 +41,19 @@ app.get("/tileserver/style.json", (req, res) => {
     res.send(style)
 })
 // Tiles url
-app.get("/tileserver/:z/:x/:y", (req, res) => {
+app.get("/tileserver/:tileName/:z/:x/:y", (req, res) => {
   const z = parseInt(req.params.z);
   const x = parseInt(req.params.x);
   const y = parseInt(req.params.y.replace(".pbf", ""));
+  const tileName = req.params.tileName;
+
   // console.log(req.params)
   console.log(x, y, z, "Tile Coordinates to look up in index");
   /*open the connection to S3 and get 
   the data from the bucket*/
   const getParams = {
     Bucket: bucketName,
-        Key: `countries/${z}/${x}/${y}.pbf`,
+        Key: `${tileName}/${z}/${x}/${y}.pbf`,
 
   };
   s3.getObject(getParams, (error, data) => {
