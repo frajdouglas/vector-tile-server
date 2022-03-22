@@ -1,130 +1,60 @@
+const { BlobServiceClient } = require("@azure/storage-blob");
+const { v1: uuidv1 } = require("uuid");
 const style_light = require("./style_light.json");
-
 //HTTP handling
 const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
 const cors = require("cors");
-//Amazon AWS SDK
-const AWS = require("aws-sdk");
-// set the AWS region
-const REGION = "eu-west-2"; // e.g., "us-east-1"
-// set the bucket parameters
-const bucketName = "www.tame-vector-tiles.xyz";
-// create S3 initial config for connection
-const config = {
-  apiVersion: "2006-03-01",
-  accessKeyId: "AKIA4VXTUMQKQKNOGVUA",
-  secretAccessKey: "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",
-  region: REGION,
-};
-const s3 = new AWS.S3(config);
+require("dotenv").config();
+
 // create a new express app instance
 const app = express();
 app.use(cors());
 
 const PORT = process.env.PORT || 5000;
-
-// we will server the built bundles from the "build" folder
 app.use(express.static(path.join(__dirname, "../../build")));
-/* we use the body parser middleware in case we 
-want to handle response in JSON formats later on */
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.listen(PORT, () => {
   console.log("App is listening on port 5000");
 });
+
+// AZURE CONNECTION
+
+const AZURE_STORAGE_CONNECTION_STRING =
+  process.env.AZURE_STORAGE_CONNECTION_STRING;
+
+if (!AZURE_STORAGE_CONNECTION_STRING) {
+  throw Error("Azure Storage Connection string not found");
+}
+// Create the BlobServiceClient object which will be used to create a container client
+const blobServiceClient = BlobServiceClient.fromConnectionString(
+  AZURE_STORAGE_CONNECTION_STRING
+);
+
+// Create a unique name for the container
+const containerName = "vector-tiles";
+console.log("\t", containerName);
+
+// Get a reference to a container
+const containerClient = blobServiceClient.getContainerClient(containerName);
+
+// Get unique name for the blob
+// const blobName = "basemap/TAME" + ".txt";
+const blobName = "basemap/tiles/4/7/4" + ".pbf";
+
+// Get a block blob client
+const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
 // Style url
 app.get("/tileserver/style.json", (req, res) => {
-    console.log("Style has been requested by map")
-    res.send(style_light)
-})
-
-// app.get("/tileserver/:tileName/style.json", (req, res) => {
-//   console.log("Style has been requested by map")
-//   const tileName = req.params.tileName;
-// console.log(tileName)
-//   const getParams = {
-//     Bucket: bucketName,
-//         Key: `${tileName}/tiles/style_light.json`,
-//   };
-//   s3.getObject(getParams, (error, data) => {
-//     if (error) {
-//       console.log("Doesn't exist");
-//       return res.status(204).end();
-//     } else {
-//       console.log(data.Body);
-//       // res.header("Content-Encoding", "gzip");
-//       res.send(data.Body);
-//     }
-//   })
-// })
-
-// get Sprites
-
-app.get("/tileserver/basemap/sprites/sprites.json", (req, res) => {
-  console.log("Sprites.json have been requested by map")
-  const getParams = {
-    Bucket: bucketName,
-        Key: `basemap/sprites/sprites.json`,
-  };
-  s3.getObject(getParams, (error, data) => {
-    if (error) {
-      console.log("Doesn't exist");
-      return res.status(204).end();
-    } else {
-      console.log(data.Body, "SPRITES JSON");
-      res.send(data.Body);
-    }
-  })
-})
-
-app.get("/tileserver/basemap/sprites/sprites.png", (req, res) => {
-  console.log("Sprites.png have been requested by map")
-
-  const getParams = {
-    Bucket: bucketName,
-        Key: `basemap/sprites/sprites.png`,
-  };
-  s3.getObject(getParams, (error, data) => {
-    if (error) {
-      console.log("Doesn't exist");
-      return res.status(204).end();
-    } else {
-      console.log(data.Body, "SPRITES PNG");
-      // res.header("Content-Encoding", "gzip");
-      res.send(data.Body);
-    }
-  })
-})
-
-
-// fonts url
-http://localhost:5000/tileserver/basemap/fonts/{fontstack}/{range}.pbf
-
-app.get("/tileserver/basemap/fonts/:fontstack/:range", (req, res) => {
-  const fontstack = req.params.fontstack;
-  const range = req.params.range.replace(".pbf", "");
-  console.log("FONT REQUEST MADE", fontstack,range)
-  const getParams = {
-    Bucket: bucketName,
-        Key: `basemap/fonts/${fontstack}/${range}.pbf`,
-  };
-  s3.getObject(getParams, (error, data) => {
-    if (error) {
-      console.log("Doesn't exist");
-      return res.status(204).end();
-    } else {
-      console.log(data.Body, "GLYPHS");
-      // res.header("Content-Encoding", "gzip");
-      res.send(data.Body);
-    }
-  })
-})
+  console.log("Style has been requested by map");
+  res.send(style_light);
+});
 // Tiles url
 app.get("/tileserver/:tileName/tiles/:z/:x/:y", (req, res) => {
-  console.log("Tile REQUEST MADE")
+  console.log("Tile REQUEST MADE");
   const z = parseInt(req.params.z);
   const x = parseInt(req.params.x);
   const y = parseInt(req.params.y.replace(".pbf", ""));
@@ -132,21 +62,54 @@ app.get("/tileserver/:tileName/tiles/:z/:x/:y", (req, res) => {
 
   // console.log(req.params)
   console.log(x, y, z, "Tile Coordinates to look up in index");
-  /*open the connection to S3 and get 
-  the data from the bucket*/
-  const getParams = {
-    Bucket: bucketName,
-        Key: `${tileName}/tiles/${z}/${x}/${y}.pbf`,
 
-  };
-  s3.getObject(getParams, (error, data) => {
-    if (error) {
-      console.log("Doesn't exist");
-      return res.status(204).end();
-    } else {
-      console.log(data.Body);
+  // AZURE CALL GOES HERE
+  main()
+    .then((data) => {
       res.header("Content-Encoding", "gzip");
-      res.send(data.Body);
-    }
-  })
-})
+      console.log(data);
+      res.send(data);
+    })
+    .catch((ex) => console.log(ex.message));
+});
+
+async function main() {
+  const downloadBlockBlobResponse = await blockBlobClient.download(0);
+  // console.log("\nDownloaded blob content...");
+  // console.log(downloadBlockBlobResponse.readableStreamBody);
+  const downloaded = (
+    await streamToBuffer(downloadBlockBlobResponse.readableStreamBody)
+  )
+  // console.log("Downloaded blob content:", downloaded);
+
+  // console.log(
+  //   "\t",
+  //   await streamToText(downloadBlockBlobResponse.readableStreamBody)
+  // );
+}
+
+
+//https://medium.com/bb-tutorials-and-thoughts/azure-how-to-interact-with-blob-storage-with-sdk-in-nodejs-apps-7680c5f937d4
+async function streamToBuffer(readableStream) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    readableStream.on("data", (data) => {
+      chunks.push(data instanceof Buffer ? data : Buffer.from(data));
+    });
+    readableStream.on("end", () => {
+      resolve(Buffer.concat(chunks));
+    });
+    readableStream.on("error", reject);
+  });
+}
+
+
+// // Convert stream to text
+// async function streamToText(readable) {
+//   // readable.setEncoding("gzip");
+//   let data = "";
+//   for await (const chunk of readable) {
+//     data += chunk;
+//   }
+//   return data;
+// }
