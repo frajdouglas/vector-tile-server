@@ -32,18 +32,101 @@ if (!AZURE_STORAGE_CONNECTION_STRING) {
 const blobServiceClient = BlobServiceClient.fromConnectionString(
   AZURE_STORAGE_CONNECTION_STRING
 );
-
 // Create a unique name for the container
 const containerName = "vector-tiles";
-console.log("\t", containerName);
-
 // Get a reference to a container
 const containerClient = blobServiceClient.getContainerClient(containerName);
+
+async function streamToBuffer(readableStream) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    readableStream.on("data", (data) => {
+      chunks.push(data instanceof Buffer ? data : Buffer.from(data));
+    });
+    readableStream.on("end", () => {
+      resolve(Buffer.concat(chunks));
+    });
+    readableStream.on("error", reject);
+  });
+}
 
 // Style url
 app.get("/tileserver/style.json", (req, res) => {
   console.log("Style has been requested by map");
   res.send(style_light);
+});
+// get Sprites
+
+app.get("/tileserver/basemap/sprites/sprites.json", (req, res) => {
+  console.log("Sprites.json have been requested by map")
+ // AZURE CALL GOES HERE
+ const blobName = `basemap/sprites/sprites.json`;
+ console.log({ blobName });
+
+ const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+ blockBlobClient
+   .download(0)
+   .then((downloadBlockBlobResponse) => {
+     return streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
+   })
+   .then((data) => {
+     console.log({ data });
+     res.send(data);
+   })
+   .catch((err) => {
+     console.log("notfound");
+   });
+})
+
+app.get("/tileserver/basemap/sprites/sprites.png", (req, res) => {
+  console.log("Sprites.png have been requested by map")
+
+ // AZURE CALL GOES HERE
+ const blobName = `basemap/sprites/sprites.png`;
+ console.log({ blobName });
+
+ const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+ blockBlobClient
+   .download(0)
+   .then((downloadBlockBlobResponse) => {
+     return streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
+   })
+   .then((data) => {
+     console.log({ data });
+     res.send(data);
+   })
+   .catch((err) => {
+     console.log("notfound");
+   });
+})
+// fonts url
+app.get("/tileserver/basemap/fonts/:fontstack/:range", (req, res) => {
+  console.log("FONT REQUEST MADE");
+
+  const fontstack = req.params.fontstack;
+  const range = req.params.range.replace(".pbf", "");
+  console.log("FONT REQUEST MADE", fontstack, range);
+
+  // AZURE CALL GOES HERE
+  const blobName = `basemap/fonts/${fontstack}/${range}.pbf`;
+  console.log({ blobName });
+
+  const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+  blockBlobClient
+    .download(0)
+    .then((downloadBlockBlobResponse) => {
+      return streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
+    })
+    .then((data) => {
+      console.log({ data });
+      res.send(data);
+    })
+    .catch((err) => {
+      console.log("notfound");
+    });
 });
 // Tiles url
 app.get("/tileserver/:tileName/tiles/:z/:x/:y", (req, res) => {
@@ -56,7 +139,7 @@ app.get("/tileserver/:tileName/tiles/:z/:x/:y", (req, res) => {
 
   // AZURE CALL GOES HERE
   const blobName = `${tileName}/tiles/${z}/${x}/${y}.pbf`;
-  console.log({blobName});
+  console.log({ blobName });
 
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
@@ -71,60 +154,8 @@ app.get("/tileserver/:tileName/tiles/:z/:x/:y", (req, res) => {
       res.send(data);
     })
     .catch((err) => {
-      console.log("notfound")
+      console.log("notfound");
     });
 });
 
-// // Get a block blob client
-// const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
-// const downloadBlockBlobResponse = await blockBlobClient.download(0);
-// const downloaded = (
-//   await streamToBuffer(downloadBlockBlobResponse.readableStreamBody)
-// )
-// res.header("Content-Encoding", "gzip");
-//       console.log(downloaded);
-//       res.send(downloaded);
-
-// })
-
-//   main()
-//     .then((data) => {
-//       res.header("Content-Encoding", "gzip");
-//       console.log(data);
-//       res.send(data);
-//     })
-//     .catch((ex) => console.log(ex.message));
-// });
-
-// async function main() {
-//   const downloadBlockBlobResponse = await blockBlobClient.download(0);
-//   const downloaded = (
-//     await streamToBuffer(downloadBlockBlobResponse.readableStreamBody)
-//   )
-//   return downloaded
-// }
-
-//https://medium.com/bb-tutorials-and-thoughts/azure-how-to-interact-with-blob-storage-with-sdk-in-nodejs-apps-7680c5f937d4
-async function streamToBuffer(readableStream) {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    readableStream.on("data", (data) => {
-      chunks.push(data instanceof Buffer ? data : Buffer.from(data));
-    });
-    readableStream.on("end", () => {
-      resolve(Buffer.concat(chunks));
-    });
-    readableStream.on("error", reject);
-  });
-}
-
-// // Convert stream to text
-// async function streamToText(readable) {
-//   // readable.setEncoding("gzip");
-//   let data = "";
-//   for await (const chunk of readable) {
-//     data += chunk;
-//   }
-//   return data;
-// }
