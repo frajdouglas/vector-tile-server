@@ -1,4 +1,4 @@
-const style = require("./style.json");
+const style_light = require("./style_light.json");
 
 //HTTP handling
 const express = require("express");
@@ -38,10 +38,93 @@ app.listen(PORT, () => {
 // Style url
 app.get("/tileserver/style.json", (req, res) => {
     console.log("Style has been requested by map")
-    res.send(style)
+    res.send(style_light)
+})
+
+// app.get("/tileserver/:tileName/style.json", (req, res) => {
+//   console.log("Style has been requested by map")
+//   const tileName = req.params.tileName;
+// console.log(tileName)
+//   const getParams = {
+//     Bucket: bucketName,
+//         Key: `${tileName}/tiles/style_light.json`,
+//   };
+//   s3.getObject(getParams, (error, data) => {
+//     if (error) {
+//       console.log("Doesn't exist");
+//       return res.status(204).end();
+//     } else {
+//       console.log(data.Body);
+//       // res.header("Content-Encoding", "gzip");
+//       res.send(data.Body);
+//     }
+//   })
+// })
+
+// get Sprites
+
+app.get("/tileserver/basemap/sprites/sprites.json", (req, res) => {
+  console.log("Sprites.json have been requested by map")
+  const getParams = {
+    Bucket: bucketName,
+        Key: `basemap/sprites/sprites.json`,
+  };
+  s3.getObject(getParams, (error, data) => {
+    if (error) {
+      console.log("Doesn't exist");
+      return res.status(204).end();
+    } else {
+      console.log(data.Body, "SPRITES JSON");
+      res.send(data.Body);
+    }
+  })
+})
+
+app.get("/tileserver/basemap/sprites/sprites.png", (req, res) => {
+  console.log("Sprites.png have been requested by map")
+
+  const getParams = {
+    Bucket: bucketName,
+        Key: `basemap/sprites/sprites.png`,
+  };
+  s3.getObject(getParams, (error, data) => {
+    if (error) {
+      console.log("Doesn't exist");
+      return res.status(204).end();
+    } else {
+      console.log(data.Body, "SPRITES PNG");
+      // res.header("Content-Encoding", "gzip");
+      res.send(data.Body);
+    }
+  })
+})
+
+
+// fonts url
+http://localhost:5000/tileserver/basemap/fonts/{fontstack}/{range}.pbf
+
+app.get("/tileserver/basemap/fonts/:fontstack/:range", (req, res) => {
+  const fontstack = req.params.fontstack;
+  const range = req.params.range.replace(".pbf", "");
+  console.log("FONT REQUEST MADE", fontstack,range)
+  const getParams = {
+    Bucket: bucketName,
+        Key: `basemap/fonts/${fontstack}/${range}.pbf`,
+  };
+  s3.getObject(getParams, (error, data) => {
+    if (error) {
+      console.log("Doesn't exist");
+      return res.status(204).end();
+    } else {
+      console.log(data.Body, "GLYPHS");
+      // res.header("Content-Encoding", "gzip");
+      res.send(data.Body);
+    }
+  })
 })
 // Tiles url
-app.get("/tileserver/:tileName/:z/:x/:y", (req, res) => {
+app.get("/tileserver/:tileName/tiles/:z/:x/:y", (req, res) => {
+  console.log("Tile REQUEST MADE")
   const z = parseInt(req.params.z);
   const x = parseInt(req.params.x);
   const y = parseInt(req.params.y.replace(".pbf", ""));
@@ -53,7 +136,7 @@ app.get("/tileserver/:tileName/:z/:x/:y", (req, res) => {
   the data from the bucket*/
   const getParams = {
     Bucket: bucketName,
-        Key: `${tileName}/${z}/${x}/${y}.pbf`,
+        Key: `${tileName}/tiles/${z}/${x}/${y}.pbf`,
 
   };
   s3.getObject(getParams, (error, data) => {
