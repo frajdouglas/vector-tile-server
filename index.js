@@ -40,13 +40,6 @@ console.log("\t", containerName);
 // Get a reference to a container
 const containerClient = blobServiceClient.getContainerClient(containerName);
 
-// Get unique name for the blob
-// const blobName = "basemap/TAME" + ".txt";
-const blobName = "basemap/tiles/4/7/4" + ".pbf";
-
-// Get a block blob client
-const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-
 // Style url
 app.get("/tileserver/style.json", (req, res) => {
   console.log("Style has been requested by map");
@@ -54,40 +47,63 @@ app.get("/tileserver/style.json", (req, res) => {
 });
 // Tiles url
 app.get("/tileserver/:tileName/tiles/:z/:x/:y", (req, res) => {
-  console.log("Tile REQUEST MADE");
   const z = parseInt(req.params.z);
   const x = parseInt(req.params.x);
   const y = parseInt(req.params.y.replace(".pbf", ""));
   const tileName = req.params.tileName;
 
-  // console.log(req.params)
-  console.log(x, y, z, "Tile Coordinates to look up in index");
+  console.log(z, x, y, tileName, "Tile Coordinates to look up in index");
 
   // AZURE CALL GOES HERE
-  main()
+  const blobName = `${tileName}/tiles/${z}/${x}/${y}.pbf`;
+  console.log({blobName});
+
+  const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+  blockBlobClient
+    .download(0)
+    .then((downloadBlockBlobResponse) => {
+      return streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
+    })
     .then((data) => {
+      console.log({ data });
       res.header("Content-Encoding", "gzip");
-      console.log(data);
       res.send(data);
     })
-    .catch((ex) => console.log(ex.message));
+    .catch((err) => {
+      console.log("notfound")
+    });
 });
 
-async function main() {
-  const downloadBlockBlobResponse = await blockBlobClient.download(0);
-  // console.log("\nDownloaded blob content...");
-  // console.log(downloadBlockBlobResponse.readableStreamBody);
-  const downloaded = (
-    await streamToBuffer(downloadBlockBlobResponse.readableStreamBody)
-  )
-  // console.log("Downloaded blob content:", downloaded);
+// // Get a block blob client
+// const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
-  // console.log(
-  //   "\t",
-  //   await streamToText(downloadBlockBlobResponse.readableStreamBody)
-  // );
-}
+// const downloadBlockBlobResponse = await blockBlobClient.download(0);
+// const downloaded = (
+//   await streamToBuffer(downloadBlockBlobResponse.readableStreamBody)
+// )
+// res.header("Content-Encoding", "gzip");
+//       console.log(downloaded);
+//       res.send(downloaded);
 
+// })
+
+//   main()
+//     .then((data) => {
+//       res.header("Content-Encoding", "gzip");
+//       console.log(data);
+//       res.send(data);
+//     })
+//     .catch((ex) => console.log(ex.message));
+// });
+
+// async function main() {
+//   const downloadBlockBlobResponse = await blockBlobClient.download(0);
+//   const downloaded = (
+//     await streamToBuffer(downloadBlockBlobResponse.readableStreamBody)
+//   )
+//   return downloaded
+// }
 
 //https://medium.com/bb-tutorials-and-thoughts/azure-how-to-interact-with-blob-storage-with-sdk-in-nodejs-apps-7680c5f937d4
 async function streamToBuffer(readableStream) {
@@ -102,7 +118,6 @@ async function streamToBuffer(readableStream) {
     readableStream.on("error", reject);
   });
 }
-
 
 // // Convert stream to text
 // async function streamToText(readable) {
