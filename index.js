@@ -148,7 +148,7 @@ app.get("/tileserver/:tileName/tiles/:z/:x/:y", (req, res) => {
       return streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
     })
     .then((data) => {
-      console.log({ data });
+      console.log({ data }, blobName);
       res.header("Content-Encoding", "gzip");
       res.send(data);
     })
