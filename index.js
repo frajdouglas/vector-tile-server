@@ -41,8 +41,10 @@ async function streamToBuffer(readableStream) {
   });
 }
 
-app.get("/tileserver/style.json", (req, res) => {
-  const blobName = `basemap/tiles/style_light.json`; 
+app.get("/tileserver/:styleName", (req, res) => {
+  const style = req.params.styleName
+  console.log(style)
+  const blobName = `basemap/tiles/${style}.json`; 
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
   blockBlobClient
