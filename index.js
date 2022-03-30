@@ -42,19 +42,15 @@ async function streamToBuffer(readableStream) {
 }
 
 app.get("/tileserver/style.json", (req, res) => {
-  console.log("Style has been requested by map");
-  const blobName = `basemap/tiles/style_light.json`;
-  console.log({ blobName });
- 
+  const blobName = `basemap/tiles/style_light.json`; 
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
- 
+
   blockBlobClient
     .download(0)
     .then((downloadBlockBlobResponse) => {
       return streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
     })
     .then((data) => {
-      console.log({ data });
       res.send(data);
     })
     .catch((err) => {
@@ -75,7 +71,6 @@ app.get("/tileserver/basemap/sprites/sprites.json", (req, res) => {
      return streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
    })
    .then((data) => {
-     console.log({ data });
      res.send(data);
    })
    .catch((err) => {
@@ -84,36 +79,24 @@ app.get("/tileserver/basemap/sprites/sprites.json", (req, res) => {
 })
 
 app.get("/tileserver/basemap/sprites/sprites.png", (req, res) => {
-  console.log("Sprites.png have been requested by map")
-
  const blobName = `basemap/sprites/sprites.png`;
- console.log({ blobName });
-
  const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-
  blockBlobClient
    .download(0)
    .then((downloadBlockBlobResponse) => {
      return streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
    })
    .then((data) => {
-     console.log({ data });
      res.send(data);
    })
    .catch((err) => {
-     console.log("notfound");
+     console.log("tile not found");
    });
 })
 app.get("/tileserver/basemap/fonts/:fontstack/:range", (req, res) => {
-  console.log("FONT REQUEST MADE");
-
   const fontstack = req.params.fontstack;
   const range = req.params.range.replace(".pbf", "");
-  console.log("FONT REQUEST MADE", fontstack, range);
-
   const blobName = `basemap/fonts/${fontstack}/${range}.pbf`;
-  console.log({ blobName });
-
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
   blockBlobClient
@@ -122,7 +105,6 @@ app.get("/tileserver/basemap/fonts/:fontstack/:range", (req, res) => {
       return streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
     })
     .then((data) => {
-      console.log({ data });
       res.send(data);
     })
     .catch((err) => {
@@ -134,12 +116,7 @@ app.get("/tileserver/:tileName/tiles/:z/:x/:y", (req, res) => {
   const x = parseInt(req.params.x);
   const y = parseInt(req.params.y.replace(".pbf", ""));
   const tileName = req.params.tileName;
-
-  console.log(z, x, y, tileName, "Tile Coordinates to look up in index");
-
   const blobName = `${tileName}/tiles/${z}/${x}/${y}.pbf`;
-  console.log({ blobName });
-
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
   blockBlobClient
@@ -148,7 +125,6 @@ app.get("/tileserver/:tileName/tiles/:z/:x/:y", (req, res) => {
       return streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
     })
     .then((data) => {
-      console.log({ data }, blobName);
       res.header("Content-Encoding", "gzip");
       res.send(data);
     })
@@ -156,5 +132,4 @@ app.get("/tileserver/:tileName/tiles/:z/:x/:y", (req, res) => {
       console.log("notfound");
     });
 });
-
 
