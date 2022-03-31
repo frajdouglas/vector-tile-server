@@ -8,19 +8,26 @@ require("dotenv").config();
 const app = express();
 app.use(cors());
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 app.use(express.static(path.join(__dirname, "../../build")));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.listen(PORT, () => {
-  console.log("App is listening on port 5000");
+
+app.get('/', (req, res) => {
+  res.send('Hello World');
+});
+
+
+app.listen(PORT, "0.0.0.0",() => {
+  console.log(`App is listening on port ${PORT}`);
 });
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
-
-if (!AZURE_STORAGE_CONNECTION_STRING) {
+console.log(AZURE_STORAGE_CONNECTION_STRING)
+  if (!AZURE_STORAGE_CONNECTION_STRING) {
   throw Error("Azure Storage Connection string not found");
+
 }
 const blobServiceClient = BlobServiceClient.fromConnectionString(
   AZURE_STORAGE_CONNECTION_STRING
@@ -40,6 +47,7 @@ async function streamToBuffer(readableStream) {
     readableStream.on("error", reject);
   });
 }
+
 
 app.get("/tileserver/:styleName", (req, res) => {
   const style = req.params.styleName
