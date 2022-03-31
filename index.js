@@ -56,11 +56,11 @@ app.get("/tileserver/:styleName", (req, res) => {
       res.send(data);
     })
     .catch((err) => {
-      console.log("notfound");
+      console.log("notfound", "style");
     });
  })
 
-app.get("/tileserver/basemap/sprites/sprites.json", (req, res) => {
+app.get("/tileserver/basemap/sprites/sprites", (req, res) => {
   console.log("Sprites.json have been requested by map")
  const blobName = `basemap/sprites/sprites.json`;
  console.log({ blobName });
@@ -76,7 +76,7 @@ app.get("/tileserver/basemap/sprites/sprites.json", (req, res) => {
      res.send(data);
    })
    .catch((err) => {
-     console.log("notfound");
+     console.log("notfound", "sprites");
    });
 })
 
@@ -110,7 +110,7 @@ app.get("/tileserver/basemap/fonts/:fontstack/:range", (req, res) => {
       res.send(data);
     })
     .catch((err) => {
-      console.log("notfound");
+      console.log("notfound", "fontstack");
     });
 });
 app.get("/tileserver/:tileName/tiles/:z/:x/:y", (req, res) => {
@@ -131,7 +131,7 @@ app.get("/tileserver/:tileName/tiles/:z/:x/:y", (req, res) => {
       res.send(data);
     })
     .catch((err) => {
-      console.log("notfound");
+      console.log("notfound", "tiles", tileName, blobName);
     });
 });
 
