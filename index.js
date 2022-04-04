@@ -6,7 +6,9 @@ const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000','https://nohamoutputs.z33.web.core.windows.net']
+}));
 
 const PORT = process.env.PORT || 5000;
 app.use(express.static(path.join(__dirname, "../../build")));
