@@ -8,7 +8,7 @@ require("dotenv").config();
 const app = express();
 app.use(cors());
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5000;
 app.use(express.static(path.join(__dirname, "../../build")));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
