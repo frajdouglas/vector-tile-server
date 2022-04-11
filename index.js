@@ -6,30 +6,27 @@ const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
-app.use(cors({
-  origin: ['http://localhost:3000','https://nohamoutputs.z33.web.core.windows.net']
-}));
+
+app.use(cors())
 
 const PORT = process.env.PORT || 5000;
 app.use(express.static(path.join(__dirname, "../../build")));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get('/', (req, res) => {
-  res.send('Hello World');
+app.get("/", (req, res) => {
+  res.send("Hello World");
 });
 
-
-app.listen(PORT, "0.0.0.0",() => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`App is listening on port ${PORT}`);
 });
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
-console.log(AZURE_STORAGE_CONNECTION_STRING)
-  if (!AZURE_STORAGE_CONNECTION_STRING) {
+console.log(AZURE_STORAGE_CONNECTION_STRING);
+if (!AZURE_STORAGE_CONNECTION_STRING) {
   throw Error("Azure Storage Connection string not found");
-
 }
 const blobServiceClient = BlobServiceClient.fromConnectionString(
   AZURE_STORAGE_CONNECTION_STRING
@@ -50,11 +47,10 @@ async function streamToBuffer(readableStream) {
   });
 }
 
-
-app.get("/tileserver/:styleName", (req, res) => {
-  const style = req.params.styleName
-  console.log(style)
-  const blobName = `basemap/tiles/${style}.json`; 
+app.get("/style/:styleName", (req, res) => {
+  const style = req.params.styleName;
+  console.log(style);
+  const blobName = `basemap/tiles/${style}.json`;
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
   blockBlobClient
@@ -68,44 +64,50 @@ app.get("/tileserver/:styleName", (req, res) => {
     .catch((err) => {
       console.log("notfound", "style");
     });
- })
+});
 
-app.get("/tileserver/basemap/sprites/sprites", (req, res) => {
-  console.log("Sprites.json have been requested by map")
- const blobName = `basemap/sprites/sprites.json`;
- console.log({ blobName });
+app.get(
+  "/sprites.json",
+  cors(),
+  (req, res) => {
+    console.log("Sprites.json have been requested by map");
+    const file_type = req.params.file_type;
 
- const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+    const blobName = `basemap/sprites/sprites.json`;
+    console.log({ blobName });
 
- blockBlobClient
-   .download(0)
-   .then((downloadBlockBlobResponse) => {
-     return streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
-   })
-   .then((data) => {
-     res.send(data);
-   })
-   .catch((err) => {
-     console.log("notfound", "sprites");
-   });
-})
+    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
-app.get("/tileserver/basemap/sprites/sprites.png", (req, res) => {
- const blobName = `basemap/sprites/sprites.png`;
- const blockBlobClient = containerClient.getBlockBlobClient(blobName);
- blockBlobClient
-   .download(0)
-   .then((downloadBlockBlobResponse) => {
-     return streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
-   })
-   .then((data) => {
-     res.send(data);
-   })
-   .catch((err) => {
-     console.log("tile not found");
-   });
-})
-app.get("/tileserver/basemap/fonts/:fontstack/:range", (req, res) => {
+    blockBlobClient
+      .download(0)
+      .then((downloadBlockBlobResponse) => {
+        return streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
+      })
+      .then((data) => {
+        res.send(data);
+      })
+      .catch((err) => {
+        console.log("notfound", "sprites");
+      });
+  }
+);
+
+app.get("/sprites.png", (req, res) => {
+  const blobName = `basemap/sprites/sprites.png`;
+  const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+  blockBlobClient
+    .download(0)
+    .then((downloadBlockBlobResponse) => {
+      return streamToBuffer(downloadBlockBlobResponse.readableStreamBody);
+    })
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((err) => {
+      console.log("tile not found");
+    });
+});
+app.get("/fonts/:fontstack/:range", (req, res) => {
   const fontstack = req.params.fontstack;
   const range = req.params.range.replace(".pbf", "");
   const blobName = `basemap/fonts/${fontstack}/${range}.pbf`;
@@ -123,7 +125,7 @@ app.get("/tileserver/basemap/fonts/:fontstack/:range", (req, res) => {
       console.log("notfound", "fontstack");
     });
 });
-app.get("/tileserver/:tileName/tiles/:z/:x/:y", (req, res) => {
+app.get("/tiles/:tileName/:z/:x/:y",(req, res) => {
   const z = parseInt(req.params.z);
   const x = parseInt(req.params.x);
   const y = parseInt(req.params.y.replace(".pbf", ""));
@@ -144,4 +146,3 @@ app.get("/tileserver/:tileName/tiles/:z/:x/:y", (req, res) => {
       console.log("notfound", "tiles", tileName, blobName);
     });
 });
-
