@@ -1,7 +1,8 @@
 # vector-tile-server
-Serves vector tiles from Azure storage account for both basemaps or additional layers.
+Serves vector tiles from Azure storage account for both basemaps or additional layers. Created using Express.js.
 
-This server works alongside the Maplibre GL JS library to serve fast rendering vector tile layers.
+To load the vector tiles in your client use Maplibre GL JS, Mapbox GL JS, Openlayers or Leaflet with the vector tile plugin.
 
-## Vector tile creation and uploading process
-![image](https://user-images.githubusercontent.com/66959816/161081502-06e2e414-39d2-48b9-b873-979ff8d8ee76.png)
+Alternative cloud storage services include Amazon S3 or Google Storage Buckets.
+
+This is an excellent resource for understanding what vector tiles and demonstrates the steps required to make vector tiles using the Tippecanoe tool: https://github.com/ITSLeeds/VectorTiles/ 
