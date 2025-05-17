@@ -5,4 +5,4 @@ To load the vector tiles in your client use Maplibre GL JS, Mapbox GL JS, Openla
 
 Alternative cloud storage services include Amazon S3 or Google Storage Buckets.
 
-This is an excellent resource for understanding what vector tiles and demonstrates the steps required to make vector tiles using the Tippecanoe tool: https://github.com/ITSLeeds/VectorTiles/ 
+This is an excellent resource for understanding vector tiles and demonstrates the steps required to make vector tiles using the Tippecanoe tool: https://github.com/ITSLeeds/VectorTiles/ 
